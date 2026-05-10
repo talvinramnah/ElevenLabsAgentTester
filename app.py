@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
 import pandas as pd
 import streamlit as st
 
-from elevenlabs_client import AgentSummary, list_agents
+# Bridge Streamlit Cloud secrets into env so existing os.environ-based clients work.
+if "ELEVENLABS_API_KEY" not in os.environ:
+    try:
+        if "ELEVENLABS_API_KEY" in st.secrets:
+            os.environ["ELEVENLABS_API_KEY"] = st.secrets["ELEVENLABS_API_KEY"]
+    except Exception:
+        pass
+
+from elevenlabs_client import AgentSummary, list_agents  # noqa: E402
 
 st.set_page_config(page_title="Agent Simulator", page_icon=None, layout="wide")
 
