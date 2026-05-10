@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -14,6 +15,15 @@ import streamlit as st
 _HERE = Path(__file__).resolve().parent.parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
+
+# Bridge Streamlit Cloud secrets into env so existing os.environ-based clients
+# work even if a user lands on this page directly without going through app.py.
+if "ELEVENLABS_API_KEY" not in os.environ:
+    try:
+        if "ELEVENLABS_API_KEY" in st.secrets:
+            os.environ["ELEVENLABS_API_KEY"] = st.secrets["ELEVENLABS_API_KEY"]
+    except Exception:
+        pass
 
 from prompts import PERSONAS, PERSONAS_BY_ID, Persona  # noqa: E402
 from sim_runner import RunResult, new_run_timestamp, run_persona  # noqa: E402
