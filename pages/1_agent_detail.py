@@ -112,7 +112,7 @@ if run_clicked:
                     f"in {res.elapsed_seconds:.1f}s"
                 )
             else:
-                fail_count = sum(1 for c in res.criteria if c.get("result") == "fail")
+                fail_count = sum(1 for c in res.criteria if c.get("result") == "failure")
                 summary = (
                     f"call_successful=`{res.call_successful}` "
                     f"| {len(res.criteria)} criteria | {fail_count} fail"
@@ -129,7 +129,7 @@ if run_clicked:
         1
         for r in results
         for c in r.criteria
-        if c.get("result") == "fail"
+        if c.get("result") == "failure"
     )
     error_total = sum(1 for r in results if r.error)
     if error_total:
@@ -202,7 +202,7 @@ long_df = _to_long_df(results)
 def _color_result(val: str) -> str:
     if val == "success":
         return "background-color: rgba(0, 180, 70, 0.18)"
-    if val == "fail":
+    if val == "failure":
         return "background-color: rgba(220, 50, 50, 0.55); color: white; font-weight: 700"
     if val == "error":
         return "background-color: rgba(220, 50, 50, 0.75); color: white; font-weight: 700"
@@ -214,7 +214,7 @@ def _color_result(val: str) -> str:
 def _style_row(row: "pd.Series") -> list[str]:
     """Row-level styling so the whole criterion row goes red on fail, not just the result cell."""
     result = str(row.get("result", ""))
-    if result in ("fail", "error"):
+    if result in ("failure", "error"):
         base = (
             "background-color: rgba(220, 50, 50, 0.45); "
             "color: white; font-weight: 700"
@@ -258,9 +258,9 @@ with tabs[0]:
         ].reset_index(drop=True)
 
         total_count = len(sub)
-        fail_count = int((sub["result"].isin(["fail", "error"])).sum())
+        fail_count = int((sub["result"].isin(["failure", "error"])).sum())
         if fails_only:
-            sub = sub[sub["result"].isin(["fail", "error"])].reset_index(drop=True)
+            sub = sub[sub["result"].isin(["failure", "error"])].reset_index(drop=True)
 
         if fail_count:
             st.markdown(
@@ -294,7 +294,7 @@ with tabs[1]:
         ordered_cols = [r.persona_label for r in results if r.persona_label in matrix.columns]
         matrix = matrix[ordered_cols]
         if matrix_fails_only:
-            fail_mask = matrix.isin(["fail", "error"]).any(axis=1)
+            fail_mask = matrix.isin(["failure", "error"]).any(axis=1)
             matrix = matrix[fail_mask]
         if matrix.empty:
             st.info("No criteria match the current filter.")
@@ -309,7 +309,7 @@ with tabs[1]:
                     st.metric(r.persona_label, "error")
                 else:
                     success = sum(1 for c in r.criteria if c.get("result") == "success")
-                    fail = sum(1 for c in r.criteria if c.get("result") == "fail")
+                    fail = sum(1 for c in r.criteria if c.get("result") == "failure")
                     unknown = sum(1 for c in r.criteria if c.get("result") == "unknown")
                     st.metric(
                         r.persona_label,
@@ -326,7 +326,7 @@ with tabs[2]:
         )
         fails = pd.DataFrame(columns=_LONG_DF_COLUMNS)
     else:
-        fails = long_df[long_df["result"].isin(["fail", "error"])].reset_index(drop=True)
+        fails = long_df[long_df["result"].isin(["failure", "error"])].reset_index(drop=True)
         if fails.empty:
             st.success("Zero `fail` results across all selected personas.")
             unknowns = long_df[long_df["result"] == "unknown"].reset_index(drop=True)
@@ -388,7 +388,7 @@ with tabs[4]:
     summary_rows = []
     for r in results:
         success = sum(1 for c in r.criteria if c.get("result") == "success")
-        fail = sum(1 for c in r.criteria if c.get("result") == "fail")
+        fail = sum(1 for c in r.criteria if c.get("result") == "failure")
         unknown = sum(1 for c in r.criteria if c.get("result") == "unknown")
         user_turns = sum(1 for t in r.transcript if (t.get("role") or "") == "user")
         summary_rows.append(
