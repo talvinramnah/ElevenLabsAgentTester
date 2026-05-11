@@ -203,12 +203,29 @@ def _color_result(val: str) -> str:
     if val == "success":
         return "background-color: rgba(0, 180, 70, 0.18)"
     if val == "fail":
-        return "background-color: rgba(220, 50, 50, 0.28)"
+        return "background-color: rgba(220, 50, 50, 0.55); color: white; font-weight: 700"
     if val == "error":
-        return "background-color: rgba(220, 50, 50, 0.45); color: white"
+        return "background-color: rgba(220, 50, 50, 0.75); color: white; font-weight: 700"
     if val == "unknown":
         return "background-color: rgba(180, 180, 180, 0.15)"
     return ""
+
+
+def _style_row(row: "pd.Series") -> list[str]:
+    """Row-level styling so the whole criterion row goes red on fail, not just the result cell."""
+    result = str(row.get("result", ""))
+    if result in ("fail", "error"):
+        base = (
+            "background-color: rgba(220, 50, 50, 0.45); "
+            "color: white; font-weight: 700"
+        )
+    elif result == "success":
+        base = "background-color: rgba(0, 180, 70, 0.10)"
+    elif result == "unknown":
+        base = "background-color: rgba(180, 180, 180, 0.08)"
+    else:
+        base = ""
+    return [base] * len(row)
 
 
 tabs = st.tabs(
@@ -220,22 +237,54 @@ with tabs[0]:
     if long_df.empty:
         st.info("No results to show.")
     else:
-        persona_label = st.selectbox(
-            "Persona",
-            options=[r.persona_label for r in results],
-            index=0,
-        )
+        col_a, col_b = st.columns([3, 2])
+        with col_a:
+            persona_label = st.selectbox(
+                "Persona",
+                options=[r.persona_label for r in results],
+                index=0,
+                key="perprompt_persona",
+            )
+        with col_b:
+            fails_only = st.toggle(
+                "Show fails only",
+                value=False,
+                key="perprompt_fails_only",
+                help="Filter to criteria where result is `fail` or `error`.",
+            )
+
         sub = long_df[long_df["persona_label"] == persona_label][
             ["criteria_id", "result", "rationale"]
         ].reset_index(drop=True)
-        styled = sub.style.map(_color_result, subset=["result"])
-        st.dataframe(styled, use_container_width=True, hide_index=True)
+
+        total_count = len(sub)
+        fail_count = int((sub["result"].isin(["fail", "error"])).sum())
+        if fails_only:
+            sub = sub[sub["result"].isin(["fail", "error"])].reset_index(drop=True)
+
+        if fail_count:
+            st.markdown(
+                f":red[**{fail_count}** failed criteria] out of {total_count} for **{persona_label}**"
+            )
+        else:
+            st.markdown(f"No failures for **{persona_label}** ({total_count} criteria)")
+
+        if sub.empty:
+            st.info("Nothing to show with the current filter.")
+        else:
+            styled = sub.style.apply(_style_row, axis=1)
+            st.dataframe(styled, use_container_width=True, hide_index=True)
 
 with tabs[1]:
     st.markdown("**Coverage matrix** — rows: criteria, columns: personas, cells: result")
     if long_df.empty:
         st.info("No results to show.")
     else:
+        matrix_fails_only = st.toggle(
+            "Show only criteria with at least one fail",
+            value=False,
+            key="matrix_fails_only",
+        )
         matrix = long_df.pivot_table(
             index="criteria_id",
             columns="persona_label",
@@ -244,8 +293,14 @@ with tabs[1]:
         ).fillna("")
         ordered_cols = [r.persona_label for r in results if r.persona_label in matrix.columns]
         matrix = matrix[ordered_cols]
-        styled_matrix = matrix.style.map(_color_result)
-        st.dataframe(styled_matrix, use_container_width=True)
+        if matrix_fails_only:
+            fail_mask = matrix.isin(["fail", "error"]).any(axis=1)
+            matrix = matrix[fail_mask]
+        if matrix.empty:
+            st.info("No criteria match the current filter.")
+        else:
+            styled_matrix = matrix.style.map(_color_result)
+            st.dataframe(styled_matrix, use_container_width=True)
 
         col_summary = st.columns(len(results))
         for col, r in zip(col_summary, results):
