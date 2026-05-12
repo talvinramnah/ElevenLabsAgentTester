@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 
 import pandas as pd
@@ -99,28 +100,47 @@ if run_clicked:
 
     results: list[RunResult] = []
     workers = min(12, len(selected_personas))
+    total = len(selected_personas)
+    start_time = time.time()
+    # Poll futures with a short timeout so we tick the UI every ~5s.
+    # Without this, simulate-conversation can block the script for 1-3 min per
+    # persona, which lets Streamlit Cloud's reverse proxy kill the websocket
+    # ("keepalive ping timeout"). The frequent placeholder update keeps the
+    # session alive without changing concurrency.
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {
             pool.submit(run_persona, agent_id, p, run_ts): p for p in selected_personas
         }
-        for fut in as_completed(futures):
-            res: RunResult = fut.result()
-            results.append(res)
-            if res.error:
-                progress_lines[res.persona_id] = (
-                    f"- **{res.persona_label}** — FAILED ({res.error}) "
-                    f"in {res.elapsed_seconds:.1f}s"
+        pending = set(futures.keys())
+        while pending:
+            done, pending = wait(pending, timeout=5.0, return_when=FIRST_COMPLETED)
+            for fut in done:
+                res: RunResult = fut.result()
+                results.append(res)
+                if res.error:
+                    progress_lines[res.persona_id] = (
+                        f"- **{res.persona_label}** — FAILED ({res.error}) "
+                        f"in {res.elapsed_seconds:.1f}s"
+                    )
+                else:
+                    fail_count = sum(
+                        1 for c in res.criteria if c.get("result") == "failure"
+                    )
+                    summary = (
+                        f"call_successful=`{res.call_successful}` "
+                        f"| {len(res.criteria)} criteria | {fail_count} fail"
+                    )
+                    progress_lines[res.persona_id] = (
+                        f"- **{res.persona_label}** — done in "
+                        f"{res.elapsed_seconds:.1f}s ({summary})"
+                    )
+            elapsed = int(time.time() - start_time)
+            status.update(
+                label=(
+                    f"Running... {elapsed}s elapsed, "
+                    f"{total - len(pending)}/{total} done"
                 )
-            else:
-                fail_count = sum(1 for c in res.criteria if c.get("result") == "failure")
-                summary = (
-                    f"call_successful=`{res.call_successful}` "
-                    f"| {len(res.criteria)} criteria | {fail_count} fail"
-                )
-                progress_lines[res.persona_id] = (
-                    f"- **{res.persona_label}** — done in "
-                    f"{res.elapsed_seconds:.1f}s ({summary})"
-                )
+            )
             placeholder.markdown("\n".join(progress_lines.values()))
 
     results.sort(key=lambda r: [p.id for p in selected_personas].index(r.persona_id))
