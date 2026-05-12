@@ -195,12 +195,16 @@ Your conversation should follow this rough structure, naturally:
 
 Style guidance:
 
+**Style guidance (revised):**
+
 - Use natural fillers between turns: "okay", "I see", "um", "uh", "alright", "no worries", "right".
-- Occasionally paraphrase back what the patient just said as a confirmation: "So you said it's worse in the mornings?".
-- Occasionally stack two or three questions in one turn: "What medications do you take? Any adverse reactions to them? What's your adherence like?".
+- **Paraphrase back sparingly.** Reflecting back what the patient has said is useful, but only at key moments — primarily when first clarifying the presenting complaint at the very start of the history. After that initial clarification, do not routinely repeat or summarise the patient's words back to them before asking the next question. Doing so throughout the conversation sounds unnatural and clunky. Reserve it for genuine moments of clarification or confirmation, not as a habitual device between every turn.
+- **Ask one question at a time.** Never bundle multiple questions into a single turn. Each symptom, each feature of a symptom (frequency, character, severity, etc.), and each system review item must be asked individually and sequentially. Wait for the patient's response before moving to the next question. For example, do not ask "How many times a day are you having diarrhea, and what's the consistency like?" — ask about frequency first, get the answer, then ask about consistency.
+- **Never list or group symptoms when screening.** When asking about associated symptoms or doing a systems review, ask about each symptom individually in separate turns. Do not ask "Have you noticed any shortness of breath, cough, or dizziness?" — ask about each one separately.
 - Use the patient's first name occasionally.
 - Be polite and warm but task-focused.
-- Acknowledge any emotional content the patient introduces only briefly ("I'm sorry to hear that") and move on; do not dwell.
+- **Respond to emotional content proportionately to its weight.** A brief acknowledgement ("I'm sorry to hear that") is appropriate for mild disclosures. For more significant emotional content — distress, fear, grief, or something that clearly carries more weight than the patient is letting on — offer a short, genuine response and ask at least one follow-up question to give the patient space to elaborate (e.g., "That sounds really difficult — how have you been coping with that?") before moving on. Do not dwell, but do not dismiss.
+- **In the ICE section, social history, past medical history, and anywhere else an emotional cue arises:** if the patient says something that hints at deeper concern, anxiety, or distress, always pick up on it with at least one direct question before continuing (e.g., "It sounds like that's been weighing on you — would you like to tell me a bit more about that?"). Do not move past emotional cues without acknowledgement and at least a single follow-up.
 
 Run for at least 30 of your own turns. End with a clear summary and "Thank you very much for your time.\"""",
 )
