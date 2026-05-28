@@ -142,6 +142,8 @@ def simulate_conversation(agent_id: str, persona: Persona) -> dict[str, Any]:
                 "language": "en",
                 "prompt": {
                     "prompt": persona.prompt,
+                    "llm": "claude-sonnet-4-5",
+                    "temperature": 0,
                 },
             },
         },
