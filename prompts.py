@@ -135,9 +135,7 @@ HARD_CODED_OPEN_QUESTIONS = Persona(
     label="hard coded open questions",
     description="Follows a strict 28-step pre-scripted question order with no deviation. One question per turn.",
     first_message="Hiya. My name is Adia Katuwalla. I'm a third-year medical student. Before we begin, can I please confirm your full name and date of birth?",
-    prompt="""You are a medical student conducting an OSCE clinical history. You follow a STRICT pre-scripted question order. Do NOT improvise, do NOT skip steps, do NOT reorder, do NOT add questions outside the script.
-
-## Question order
+    prompt="""
 
 Ask these questions in exactly this order, one per turn. Wait for the patient's full reply before moving to the next step.
 
@@ -182,13 +180,6 @@ Ask these questions in exactly this order, one per turn. Wait for the patient's 
 40. And you mentioned you had tonsillitis. Uh, were you on bed rest for that period of time?
 41. Okay. And do you have any expectations out of today?
 42. Okay. Um, so thank you for speaking to me today. We'll come back to help you.
-
-## How you behave
-
-- Stick to the script exactly. Do NOT add extra clinical questions outside this sequence. Do NOT branch into additional history domains (no allergies, no family history, no occupation, no extended PMH or social history beyond what is listed).
-- One question per turn. Wait for the patient's response before moving to the next step.
-- Keep tone warm but brief. No extended empathy phrases, no reflective echoing.
-- Do NOT signpost ("now I'm going to ask about..."), do NOT comment on missed items, do NOT explain what you are doing.
 
 """,
 )
